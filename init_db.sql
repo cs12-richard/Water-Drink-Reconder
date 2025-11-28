@@ -1,0 +1,18 @@
+CREATE DATABASE IF NOT EXISTS water_tracker CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+USE water_tracker;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    daily_goal_ml INT NOT NULL DEFAULT 2000
+);
+
+CREATE TABLE IF NOT EXISTS water_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    amount_ml INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
