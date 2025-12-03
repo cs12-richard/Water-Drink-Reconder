@@ -1,48 +1,25 @@
 <?php 
 // dashboard.php
 
-// 之後改成 include
-// include 'includes/auth_check.php';
-// include 'includes/db.php';
+require_once __DIR__ . '/includes/auth_check.php';
+require_once __DIR__ . '/includes/db.php';
 
 date_default_timezone_set("Asia/Taipei");
 
-// 假裝從登入狀態拿到使用者
-$userName  = '小花園測試用戶';
-$userId    = 1; // 之後改成 $_SESSION['user_id']
+$userId    = $_SESSION['user_id'];
 $todayDate = date('Y-m-d');
 
-// ==================== 資料存取函式（demo版） ====================
+$userName = '小花園用戶';
+$stmt = $conn->prepare("SELECT name FROM users WHERE id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$stmt->bind_result($userName);
+$stmt->fetch();
+$stmt->close();
 
-// 每日目標（demo 版：固定 2000 ml）
-function demo_get_user_daily_goal($userId) {
-    return 2000;
-}
+// ==================== 資料存取 ====================
 
-// 今天總喝水量（demo 版：base 800 + 這次表單的 amount）
-function demo_get_today_total_water($userId, $todayDate) {
-    $baseToday = 800;
-    $added = 0;
-    if ($_SERVER['REQUEST_METHOD'] === 'POST'
-        && isset($_POST['action']) && $_POST['action'] === 'drink') {
-        $added = isset($_POST['amount_ml']) ? (int)$_POST['amount_ml'] : 0;
-    }
-
-    return $baseToday + $added;
-}
-
-// 這週達標資訊（demo 版：寫死一個陣列）
-function demo_get_weekly_reach_info($userId, $todayDate) {
-    return [true, true, false, true, true, true, false];
-}
-
-// 累積達標次數（demo 版）
-function demo_get_lifetime_reach_count($userId) {
-    return 50;
-}
-
-/* ==================== 正式版本樣板（先註解，之後接 DB 時用） ====================
-
+// 取得使用者每日目標
 function get_user_daily_goal($userId, $conn) {
     $sql = "SELECT daily_goal_ml FROM users WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -58,7 +35,10 @@ function get_user_daily_goal($userId, $conn) {
     return 2000;
 }
 
+// 新增一筆喝水紀錄
 function insert_drink_log($userId, $amountMl, $conn) {
+    if ($amountMl <= 0) return;
+
     $sql = "INSERT INTO water_logs (user_id, amount_ml, created_at)
             VALUES (?, ?, NOW())";
     $stmt = $conn->prepare($sql);
@@ -67,6 +47,7 @@ function insert_drink_log($userId, $amountMl, $conn) {
     $stmt->close();
 }
 
+// 取得今天總喝水量
 function get_today_total_water($userId, $todayDate, $conn) {
     $sql = "SELECT COALESCE(SUM(amount_ml), 0)
             FROM water_logs
@@ -81,52 +62,53 @@ function get_today_total_water($userId, $todayDate, $conn) {
     return (int)$total;
 }
 
+// 取得最近 7 天是否達標（回傳 7 個 true/false）
 function get_weekly_reach_info($userId, $todayDate, $conn) {
-    // 取最近 7 天的日期範圍
     $startDate = date('Y-m-d', strtotime($todayDate . ' -6 days'));
 
     $sql = "
-        SELECT DATE(created_at) AS d, SUM(amount_ml) AS total
-        FROM water_logs
-        WHERE user_id = ?
-          AND DATE(created_at) BETWEEN ? AND ?
-        GROUP BY DATE(created_at)
+        SELECT DATE(w.created_at) AS d,
+               SUM(w.amount_ml) AS total,
+               u.daily_goal_ml AS goal
+        FROM water_logs w
+        JOIN users u ON w.user_id = u.id
+        WHERE w.user_id = ?
+          AND DATE(w.created_at) BETWEEN ? AND ?
+        GROUP BY DATE(w.created_at), u.daily_goal_ml
     ";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iss", $userId, $startDate, $todayDate);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $res = $stmt->get_result();
 
-    // 先把每一天的總量放進 map
-    $dailyTotal = [];
-    while ($row = $result->fetch_assoc()) {
-        $dailyTotal[$row['d']] = (int)$row['total'];
+    $result = array_fill(0, 7, false);
+
+    while ($row = $res->fetch_assoc()) {
+        $d = $row['d'];
+        $total = (int)$row['total'];
+        $goal  = (int)$row['goal'];
+
+        $diff = (strtotime($d) - strtotime($startDate)) / 86400; // 0~6
+        if ($diff >= 0 && $diff < 7) {
+            $result[(int)$diff] = ($total >= $goal);
+        }
     }
+
     $stmt->close();
-
-    // 再依日期從最舊到今天，決定有沒有達標（true/false）
-    // （這裡需要 daily_goal_ml，所以可以在外面先抓好傳進來，或在函式裡再查一次）
-    // 假設已經有 $goal 這個變數：
-    // global $goal; 或改成 function 參數傳入
-
-    $reachFlags = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $date = date('Y-m-d', strtotime($todayDate . " -{$i} days"));
-        $total = $dailyTotal[$date] ?? 0;
-        $reachFlags[] = ($total >= $goal);
-    }
-    return $reachFlags;
+    return $result;
 }
 
+// 統計「一生中」有幾天達標
 function get_lifetime_reach_count($userId, $conn) {
-    // 計算「總喝水量 >= 目標」的日期有幾天
     $sql = "
         SELECT COUNT(*) FROM (
-            SELECT DATE(w.created_at) AS d, SUM(w.amount_ml) AS total, u.daily_goal_ml AS goal
+            SELECT DATE(w.created_at) AS d,
+                   SUM(w.amount_ml) AS total,
+                   u.daily_goal_ml AS goal
             FROM water_logs w
             JOIN users u ON w.user_id = u.id
             WHERE w.user_id = ?
-            GROUP BY DATE(w.created_at)
+            GROUP BY DATE(w.created_at), u.daily_goal_ml
         ) AS t
         WHERE t.total >= t.goal
     ";
@@ -139,7 +121,6 @@ function get_lifetime_reach_count($userId, $conn) {
     return (int)$cnt;
 }
 
-================================================================= */
 
 // ==================== 邏輯函式 ====================
 
@@ -176,26 +157,25 @@ function get_plant_image_path($plantStageId) {
     return "assets/img/plants/stage_{$plantStageId}.png";
 }
 
-// ==================== 呼叫函式拿資料（demo） ====================
+// ==================== 呼叫函式拿資料 ====================
 
-$dailyGoalMl        = demo_get_user_daily_goal($userId);
-$todayTotalMl       = demo_get_today_total_water($userId, $todayDate);
-$weeklyReach        = demo_get_weekly_reach_info($userId, $todayDate);
+$dailyGoalMl = get_user_daily_goal($userId, $conn);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['action']) && $_POST['action'] === 'drink') {
+
+    $added = isset($_POST['amount_ml']) ? (int)$_POST['amount_ml'] : 0;
+    insert_drink_log($userId, $added, $conn);
+
+    header("Location: dashboard.php");
+    exit;
+}
+
+// 拿今天總喝水量 + 這週達標情況 + 累積達標天數
+$todayTotalMl       = get_today_total_water($userId, $todayDate, $conn);
+$weeklyReach        = get_weekly_reach_info($userId, $todayDate, $conn);
 $weekReachCount     = array_sum($weeklyReach);
-$lifetimeReachCount = demo_get_lifetime_reach_count($userId);
-
-// 正式版本（之後接 DB 時用）
-// include 'includes/db.php';
-// $dailyGoalMl  = get_user_daily_goal($userId, $conn);
-// if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'drink') {
-//     $added = (int)($_POST['amount_ml'] ?? 0);
-//     insert_drink_log($userId, $added, $conn);
-//     header("Location: dashboard.php");
-//     exit;
-// }
-// $todayTotalMl       = get_today_total_water($userId, $todayDate, $conn);
-// $weeklyReach        = get_weekly_reach_info($userId, $todayDate, $conn);
-// $lifetimeReachCount = get_lifetime_reach_count($userId, $conn);
+$lifetimeReachCount = get_lifetime_reach_count($userId, $conn);
 
 // 收成邏輯
 $harvestGoalDays = 50; 
@@ -217,9 +197,10 @@ $plantMoodText   = $moodInfo['text'];
 $plantImagePath    = get_plant_image_path($plantStageId);
 
 // 水壺圖片 & 每次預設喝水量
-$wateringCanImage   = "assets/img/plants/watering_can.png";
+$wateringCanImage   = "assets/img/watering_can.png";
 $defaultDrinkAmount = 200;
 ?>
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -230,11 +211,15 @@ $defaultDrinkAmount = 200;
 <body>
     <!-- header（之後抽成 header.php） -->
     <header class="navbar">
-        <div class="logo">WaterGrow 小花園 🌱</div>
+        <div class="logo">
+          <img src="assets/img/logo.png" alt="WaterGrow Logo" class="logo-img">
+          <span class="logo-text">WaterGrow 小花園</span>
+        </div>
         <nav>
-            <a href="#" class="active">Dashboard</a>
+            <a href="dashboard.php" class="active">Dashboard</a>
             <a href="#">設定目標</a>
             <a href="#">歷史紀錄</a>
+            <a href="auth/logout.php">登出</a>
         </nav>
         <div class="user">Hi, <?php echo htmlspecialchars($userName); ?></div>
     </header>
@@ -318,7 +303,7 @@ $defaultDrinkAmount = 200;
                 <!-- 水壺站在木樁上 -->
                 <div class="watering-can-area">
                     <div class="watering-stand">
-                        <img src="assets/img/plants/stump.png" alt="木樁">
+                        <img src="assets/img/stump.png" alt="木樁">
                     </div>
                     <div class="watering-can" id="wateringCan">
                         <img src="<?php echo htmlspecialchars($wateringCanImage); ?>" alt="Watering can">

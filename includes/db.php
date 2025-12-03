@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';
 $dbname = 'water_tracker';
-$username = 'CVML';
-$password = '114DWP2025';
+$username = 'root';
+$password = 'Sunny0516';
 
 $conn = new mysqli($host, $username, $password, $dbname);
 
