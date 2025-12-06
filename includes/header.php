@@ -4,6 +4,18 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+$userName = '小花園用戶';
+if (isset($_SESSION['user_id'])) {
+    include 'db.php';
+    $stmt = $conn->prepare("SELECT name FROM users WHERE id=?");
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $userName = $row['name'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
