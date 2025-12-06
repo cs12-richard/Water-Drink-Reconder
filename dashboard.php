@@ -201,28 +201,7 @@ $wateringCanImage   = "assets/img/watering_can.png";
 $defaultDrinkAmount = 200;
 ?>
 
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>WaterGrow 小花園 Dashboard</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-    <!-- header（之後抽成 header.php） -->
-    <header class="navbar">
-        <div class="logo">
-          <img src="assets/img/logo.png" alt="WaterGrow Logo" class="logo-img">
-          <span class="logo-text">WaterGrow 小花園</span>
-        </div>
-        <nav>
-            <a href="dashboard.php" class="active">Dashboard</a>
-            <a href="#">設定目標</a>
-            <a href="#">歷史紀錄</a>
-            <a href="auth/logout.php">登出</a>
-        </nav>
-        <div class="user">Hi, <?php echo htmlspecialchars($userName); ?></div>
-    </header>
+<?php require_once __DIR__ . '/includes/header.php'; ?>
 
     <div class="garden-container">
         <div class="garden-inner">
@@ -429,3 +408,6 @@ $defaultDrinkAmount = 200;
     </script>
 </body>
 </html>
+
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
+
