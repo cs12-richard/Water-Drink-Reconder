@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>註冊｜WaterGrow 小花園</title>
+    <title>註冊｜WaterGrow</title>
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>

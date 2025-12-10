@@ -1,4 +1,4 @@
-/* ========= 顏色主題變數（小花園綠） ========= */
+/* ========= 顏色主題變數 ========= */
 :root {
   --auth-bg-overlay: rgba(255, 255, 255, 0.2);
 
@@ -36,7 +36,7 @@ body {
   padding: 0 2rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -63,6 +63,15 @@ body {
   display: block;
 }
 
+.navbar nav {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+}
+
 .navbar nav a {
   margin: 0 0.75rem;
   text-decoration: none;
@@ -76,6 +85,7 @@ body {
 }
 
 .navbar .user {
+  margin-left: auto;
   font-size: 0.9rem;
   opacity: 0.8;
 }
@@ -522,8 +532,12 @@ body {
   padding: 32px 16px;
 }
 
+.auth-page--with-header {
+  margin-top: 60px;
+  min-height: calc(100vh - 60px);
+}
+
 .auth-page::before {
-  /* 淡淡的白色霧面罩，讓文字比較清楚 */
   content: "";
   position: fixed;
   inset: 0;

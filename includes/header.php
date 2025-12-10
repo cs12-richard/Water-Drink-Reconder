@@ -6,6 +6,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/db.php';
 
+$currentPage = $currentPage ?? '';
+
 $userName = '小花園用戶';
 if (isset($_SESSION['user_id'])) {
     $stmt = $conn->prepare("SELECT name FROM users WHERE id=?");
@@ -18,30 +20,21 @@ if (isset($_SESSION['user_id'])) {
     $stmt->close();
 }
 ?>
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WaterGrow 小花園</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
 
-<body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/img/logo.png" alt="WaterGrow Logo" class="logo-img">
-            <span class="logo-text">WaterGrow 小花園</span>
-        </div>
+<header class="navbar">
+    <div class="logo">
+        <img src="assets/img/logo.png" alt="WaterGrow Logo" class="logo-img">
+        <span class="logo-text">WaterGrow</span>
+    </div>
 
-        <nav>
-            <a href="dashboard.php">Dashboard</a>
-            <a href="goal.php">設定目標</a>
-            <a href="history.php">歷史紀錄</a>
-            <a href="auth/logout.php">登出</a>
-        </nav>
+    <nav>
+        <a href="dashboard.php" class="<?php echo ($currentPage === 'dashboard') ? 'active' : ''; ?>">Dashboard</a>
+        <a href="goal.php" class="<?php echo ($currentPage === 'goal') ? 'active' : ''; ?>">設定目標</a>
+        <a href="history.php" class="<?php echo ($currentPage === 'history') ? 'active' : ''; ?>">歷史紀錄</a>
+        <a href="auth/logout.php">登出</a>
+    </nav>
 
-        <div class="user">
-            Hi, <?php echo isset($userName) ? htmlspecialchars($userName) : '使用者'; ?>
-        </div>
-    </header>
+    <div class="user">
+        Hi, <?php echo isset($userName) ? htmlspecialchars($userName) : '使用者'; ?>
+    </div>
+</header>

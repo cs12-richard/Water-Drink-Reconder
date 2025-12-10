@@ -1,7 +1,7 @@
 <?php 
 
-require_once __DIR__ . '/includes/auth_check.php';
-require_once __DIR__ . '/includes/db.php';
+include 'includes/auth_check.php';
+include 'includes/db.php';
 
 $userId    = $_SESSION['user_id'];
 $todayDate = date('Y-m-d');
@@ -101,90 +101,101 @@ $moodInfo = calc_plant_mood($weekReachCount);
 
 $plantImagePath = "assets/img/plants/stage_{$stageInfo['id']}.png";
 $defaultDrinkAmount = 200;
+
+$currentPage = 'dashboard';
 ?>
 
-<?php require_once __DIR__ . '/includes/header.php'; ?>
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>主頁｜WaterGrow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
 
-    <div class="garden-container">
-        <div class="garden-inner">
-            <section class="diary">
-                <button type="button" class="help-btn" data-help-target="diary-help">?</button>
-                <div class="diary-inner">
-                    <div class="diary-header"><div class="diary-title">植物日誌</div></div>
-                    <div class="diary-body">
-                        <div class="diary-row"><span class="diary-label">日期</span><span class="diary-value"><?php echo htmlspecialchars($todayDate); ?></span></div>
-                        <div class="diary-row"><span class="diary-label">今日喝水</span><span class="diary-value"><?php echo (int)$todayTotalMl; ?> / <?php echo (int)$dailyGoalMl; ?> ml</span></div>
-                        <div class="diary-row"><span class="diary-label">成長階段</span><span class="diary-value"><?php echo htmlspecialchars($stageInfo['label']); ?></span></div>
-                        <div class="diary-row"><span class="diary-label">本週達標</span><span class="diary-value"><?php echo (int)$weekReachCount; ?> / 7 天</span></div>
-                        <div class="diary-row"><span class="diary-label">植物狀態</span><span class="diary-value"><?php echo htmlspecialchars($moodInfo['text']); ?></span></div>
-                        <div class="diary-row"><span class="diary-label">收成倒數</span><span class="diary-value"><?php echo $daysToHarvest > 0 ? "再達標 {$daysToHarvest} 次" : "可收成！"; ?></span></div>
-                        <div class="diary-row"><span class="diary-label">世代</span><span class="diary-value">第 <?php echo $plantGeneration; ?> 代 / 累積 <?php echo $lifetimeReachCount; ?> 天</span></div>
-                    </div>
-                </div>
-                <div class="help-content" id="diary-help">植物狀態由本週達標天數決定，成長階段由累積達標天數決定。</div>
-            </section>
+<?php include 'includes/header.php'; ?>
 
-            <section class="garden-center">
-                <div class="plant-container">
-                    <div class="plant-image-wrapper"><img src="<?php echo htmlspecialchars($plantImagePath); ?>" alt="Plant"></div>
-                    <div class="plant-water" id="plantWater"></div>
+<div class="garden-container">
+    <div class="garden-inner">
+        <section class="diary">
+            <button type="button" class="help-btn" data-help-target="diary-help">?</button>
+            <div class="diary-inner">
+                <div class="diary-header"><div class="diary-title">植物日誌</div></div>
+                <div class="diary-body">
+                    <div class="diary-row"><span class="diary-label">日期</span><span class="diary-value"><?php echo htmlspecialchars($todayDate); ?></span></div>
+                    <div class="diary-row"><span class="diary-label">今日喝水</span><span class="diary-value"><?php echo (int)$todayTotalMl; ?> / <?php echo (int)$dailyGoalMl; ?> ml</span></div>
+                    <div class="diary-row"><span class="diary-label">成長階段</span><span class="diary-value"><?php echo htmlspecialchars($stageInfo['label']); ?></span></div>
+                    <div class="diary-row"><span class="diary-label">本週達標</span><span class="diary-value"><?php echo (int)$weekReachCount; ?> / 7 天</span></div>
+                    <div class="diary-row"><span class="diary-label">植物狀態</span><span class="diary-value"><?php echo htmlspecialchars($moodInfo['text']); ?></span></div>
+                    <div class="diary-row"><span class="diary-label">收成倒數</span><span class="diary-value"><?php echo $daysToHarvest > 0 ? "再達標 {$daysToHarvest} 次" : "可收成！"; ?></span></div>
+                    <div class="diary-row"><span class="diary-label">世代</span><span class="diary-value">第 <?php echo $plantGeneration; ?> 代 / 累積 <?php echo $lifetimeReachCount; ?> 天</span></div>
                 </div>
-            </section>
+            </div>
+            <div class="help-content" id="diary-help">植物狀態由本週達標天數決定，成長階段由累積達標天數決定。</div>
+        </section>
 
-            <section class="watering-column">
-                <div class="watering-can-area">
-                    <div class="watering-stand"><img src="assets/img/stump.png" alt="木樁"></div>
-                    <div class="watering-can" id="wateringCan"><img src="assets/img/watering_can.png" alt="Can"></div>
-                </div>
-                <div class="signboard">
-                    <section class="watering-panel">
-                        <button type="button" class="help-btn" data-help-target="watering-help">?</button>
-                        <div class="watering-controls">
-                            <div class="amount-row">
-                                <button type="button" class="arrow-btn" id="amountDown">&minus;</button>
-                                <div class="amount-display"><span id="amountText"><?php echo $defaultDrinkAmount; ?></span> ml</div>
-                                <button type="button" class="arrow-btn" id="amountUp">+</button>
-                            </div>
-                            <form method="post" id="drinkForm">
-                                <input type="hidden" name="action" value="drink">
-                                <input type="hidden" name="amount_ml" id="amountInput" value="<?php echo $defaultDrinkAmount; ?>">
-                                <button type="submit" class="drink-btn"><span>幫植物澆水</span></button>
-                            </form>
+        <section class="garden-center">
+            <div class="plant-container">
+                <div class="plant-image-wrapper"><img src="<?php echo htmlspecialchars($plantImagePath); ?>" alt="Plant"></div>
+                <div class="plant-water" id="plantWater"></div>
+            </div>
+        </section>
+
+        <section class="watering-column">
+            <div class="watering-can-area">
+                <div class="watering-stand"><img src="assets/img/stump.png" alt="木樁"></div>
+                <div class="watering-can" id="wateringCan"><img src="assets/img/watering_can.png" alt="Can"></div>
+            </div>
+            <div class="signboard">
+                <section class="watering-panel">
+                    <button type="button" class="help-btn" data-help-target="watering-help">?</button>
+                    <div class="watering-controls">
+                        <div class="amount-row">
+                            <button type="button" class="arrow-btn" id="amountDown">&minus;</button>
+                            <div class="amount-display"><span id="amountText"><?php echo $defaultDrinkAmount; ?></span> ml</div>
+                            <button type="button" class="arrow-btn" id="amountUp">+</button>
                         </div>
-                        <div class="help-content" id="watering-help">調整水量後，按下按鈕即可記錄並澆水。</div>
-                    </section>
-                </div>
-            </section>
-        </div>
+                        <form method="post" id="drinkForm">
+                            <input type="hidden" name="action" value="drink">
+                            <input type="hidden" name="amount_ml" id="amountInput" value="<?php echo $defaultDrinkAmount; ?>">
+                            <button type="submit" class="drink-btn"><span>幫植物澆水</span></button>
+                        </form>
+                    </div>
+                    <div class="help-content" id="watering-help">調整水量後，按下按鈕即可記錄並澆水。</div>
+                </section>
+            </div>
+        </section>
     </div>
+</div>
 
-    <script>
-        (function() {
-            var amount = <?php echo $defaultDrinkAmount; ?>;
-            var amountText = document.getElementById('amountText');
-            var amountInput = document.getElementById('amountInput');
-            
-            function update() { amountText.textContent = amount; amountInput.value = amount; }
-            document.getElementById('amountUp').onclick = function() { amount = Math.min(1000, amount + 50); update(); };
-            document.getElementById('amountDown').onclick = function() { amount = Math.max(50, amount - 50); update(); };
+<script>
+    (function() {
+        var amount = <?php echo $defaultDrinkAmount; ?>;
+        var amountText = document.getElementById('amountText');
+        var amountInput = document.getElementById('amountInput');
+        
+        function update() { amountText.textContent = amount; amountInput.value = amount; }
+        document.getElementById('amountUp').onclick = function() { amount = Math.min(1000, amount + 50); update(); };
+        document.getElementById('amountDown').onclick = function() { amount = Math.max(50, amount - 50); update(); };
 
-            document.getElementById('drinkForm').onsubmit = function(e) {
-                e.preventDefault();
-                document.getElementById('wateringCan').classList.add('pouring');
-                setTimeout(() => document.getElementById('plantWater').classList.add('active'), 200);
-                setTimeout(() => this.submit(), 1000);
-            };
-            
-            document.querySelectorAll('.help-btn').forEach(btn => btn.onclick = e => {
-                e.stopPropagation();
-                var t = document.getElementById(btn.dataset.helpTarget);
-                if(t) {
-                    document.querySelectorAll('.help-content').forEach(el => el.classList.remove('show'));
-                    t.classList.add('show');
-                }
-            });
-            document.onclick = () => document.querySelectorAll('.help-content').forEach(el => el.classList.remove('show'));
-        })();
-    </script>
+        document.getElementById('drinkForm').onsubmit = function(e) {
+            e.preventDefault();
+            document.getElementById('wateringCan').classList.add('pouring');
+            setTimeout(() => document.getElementById('plantWater').classList.add('active'), 200);
+            setTimeout(() => this.submit(), 1000);
+        };
+        
+        document.querySelectorAll('.help-btn').forEach(btn => btn.onclick = e => {
+            e.stopPropagation();
+            var t = document.getElementById(btn.dataset.helpTarget);
+            if(t) {
+                document.querySelectorAll('.help-content').forEach(el => el.classList.remove('show'));
+                t.classList.add('show');
+            }
+        });
+        document.onclick = () => document.querySelectorAll('.help-content').forEach(el => el.classList.remove('show'));
+    })();
+</script>
 </body>
 </html>

@@ -19,15 +19,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 }
+
+$currentPage = 'goal';
 ?>
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>目標設定｜WaterGrow</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
 
 <?php include 'includes/header.php'; ?>
 
-<div class="auth-page">
+<div class="auth-page auth-page--with-header">
     <div class="auth-card">
         <div class="auth-app-brand">
             <div class="auth-app-logo-img"><img src="assets/img/logo.png" alt="Logo"></div>
-            <div class="auth-app-name">喝水小花園<small>Goal Setting</small></div>
+            <div class="auth-app-name">WaterGrow<small>Goal Setting</small></div>
         </div>
 
         <h2 class="auth-title">設定每日喝水目標</h2>
