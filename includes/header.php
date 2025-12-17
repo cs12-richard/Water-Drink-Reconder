@@ -28,7 +28,7 @@ if (isset($_SESSION['user_id'])) {
     </div>
 
     <nav>
-        <a href="dashboard.php" class="<?php echo ($currentPage === 'dashboard') ? 'active' : ''; ?>">Dashboard</a>
+        <a href="dashboard.php" class="<?php echo ($currentPage === 'dashboard') ? 'active' : ''; ?>">主頁</a>
         <a href="goal.php" class="<?php echo ($currentPage === 'goal') ? 'active' : ''; ?>">設定目標</a>
         <a href="history.php" class="<?php echo ($currentPage === 'history') ? 'active' : ''; ?>">歷史紀錄</a>
         <a href="auth/logout.php">登出</a>
