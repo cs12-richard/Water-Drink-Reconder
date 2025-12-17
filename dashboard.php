@@ -128,7 +128,7 @@ $currentPage = 'dashboard';
                     <div class="diary-row"><span class="diary-label">日期</span><span class="diary-value"><?php echo htmlspecialchars($todayDate); ?></span></div>
                     <div class="diary-row"><span class="diary-label">今日喝水</span><span class="diary-value"><?php echo (int)$todayTotalMl; ?> / <?php echo (int)$dailyGoalMl; ?> ml</span></div>
                     <div class="diary-row"><span class="diary-label">成長階段</span><span class="diary-value"><?php echo htmlspecialchars($stageInfo['label']); ?></span></div>
-                    <div class="diary-row"><span class="diary-label">本週達標</span><span class="diary-value"><?php echo (int)$weekReachCount; ?> / 7 天</span></div>
+                    <div class="diary-row"><span class="diary-label">近期達標</span><span class="diary-value"><?php echo (int)$weekReachCount; ?> / 7 天</span></div>
                     <div class="diary-row"><span class="diary-label">植物狀態</span><span class="diary-value"><?php echo htmlspecialchars($moodInfo['text']); ?></span></div>
                     <div class="diary-row"><span class="diary-label">收成倒數</span><span class="diary-value"><?php echo $daysToHarvest > 0 ? "再達標 {$daysToHarvest} 次" : "可收成！"; ?></span></div>
                     <div class="diary-row"><span class="diary-label">世代</span><span class="diary-value">第 <?php echo $plantGeneration; ?> 代 / 累積 <?php echo $lifetimeReachCount; ?> 天</span></div>
