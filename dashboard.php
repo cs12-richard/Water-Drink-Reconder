@@ -3,6 +3,8 @@
 include 'includes/auth_check.php';
 include 'includes/db.php';
 
+date_default_timezone_set("Asia/Taipei");
+
 $userId    = $_SESSION['user_id'];
 $todayDate = date('Y-m-d');
 
